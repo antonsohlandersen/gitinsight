@@ -1,0 +1,131 @@
+@page "/Analysis"
+@using System.Net.Http
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@attribute [Authorize]
+@inject HttpClient Http
+
+<PageTitle>Analysis</PageTitle>
+
+<h1>Analysis</h1>
+
+<div class="col-md-6 col-lg-4 p-3">
+    <RadzenCard>
+        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Input a GitHub identifier</RadzenText>
+        <RadzenTextBox Placeholder="github_user/repository_name" Change=@(args => @analysisCode.OnChange(args)) Class="w-100" />
+    </RadzenCard>
+</div>
+
+<RadzenButton Click=@(e => @analysisCode.getAuthorAnalysis(Http)) Text="Author Analysis" />
+<RadzenButton Click=@(e => @analysisCode.getFrequencyAnalysis(Http)) Text="Frequency Analysis" />
+<RadzenButton Click=@(e => @analysisCode.getForkAnalysis(Http)) Text="Fork Analysis" />
+<RadzenButton Click=@(e => @analysisCode.getFileAnalysis(Http)) Text="File Analysis" />
+
+@if (analysisCode.isItAuthor == true)
+{
+    <RadzenChart>
+        <RadzenPieSeries Data="@analysisCode.authorObjects" Title="Author Frequency" CategoryProperty="author" ValueProperty="frequency"></RadzenPieSeries>
+        <RadzenValueAxis>
+            <RadzenGridLines Visible="true" />
+            <RadzenAxisTitle Text="Commit Frequency" />
+        </RadzenValueAxis>
+    </RadzenChart>
+    
+    @foreach (var author in analysisCode.authorAnalysis)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>@author.author</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var freq in @author.frequencies)
+                {
+                    <tr>
+                        <td>@freq.frequency commits on @freq.date.ToString("dd/MM/yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@if (analysisCode.isItFrequency == true)
+{
+    <RadzenChart>
+        <RadzenAreaSeries Smooth=true Data="@analysisCode.frequencyAnalysis" CategoryProperty="date" Title="Commits" ValueProperty="frequency" RenderingOrder="1"></RadzenAreaSeries>
+        <RadzenValueAxis>
+            <RadzenGridLines Visible="true" />
+            <RadzenAxisTitle Text="Commit Frequency" />
+        </RadzenValueAxis>
+    </RadzenChart>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Number of commits</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var freq in @analysisCode.frequencyAnalysis)
+        {
+            <tr>
+                <td>@freq.frequency</td>
+                <td>@freq.date.ToString("dd/MM/yyyy")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@if (analysisCode.isItFork == true)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Forks</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var fork in @analysisCode.forkAnalysis)
+        {
+            <tr>
+                <td>@fork.url</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@if (analysisCode.isItFile == true)
+{
+    @foreach (var commit in analysisCode.fileAnalysis)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>@commit.identifier</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var change in @commit.changes)
+                {
+                    <tr>
+                        <td>@change</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    AnalysisCode? analysisCode { get; set; }
+    
+    protected override void OnInitialized()
+    {
+        analysisCode = AnalysisCode.Instance;
+    }
+}

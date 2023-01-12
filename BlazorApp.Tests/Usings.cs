@@ -1,0 +1,10 @@
+global using Xunit;
+global using Bunit;
+global using BlazorApp.Pages;
+global using BlazorApp;
+global using Bunit.TestDoubles;
+global using Microsoft.Extensions.DependencyInjection;
+global using System;
+global using System.Collections.Generic;
+global using System.Net;
+global using System.Text.Json;
